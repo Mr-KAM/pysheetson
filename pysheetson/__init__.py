@@ -17,7 +17,13 @@ from __future__ import annotations
 
 import json
 import requests
-from typing import Any, Dict, Iterable, Mapping, MutableMapping, Optional, Union
+from typing import Any, Dict, Iterable, List, Mapping, MutableMapping, Optional, Union
+
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
 
 __all__ = [
     "SheetsonClient",
@@ -27,6 +33,8 @@ __all__ = [
     "delete_row",
     "search_rows",
     "list_rows",
+    "batch_operations",
+    "create_rows_from_dataframe",
 ]
 
 JSONMapping = Mapping[str, Any]
@@ -197,6 +205,135 @@ class SheetsonClient:
         self._raise_for_status(resp)
         return resp.json()
 
+    # -------------- Batch Operations & DataFrame Support --------------
+    def create_rows_from_dataframe(self, sheet: str, dataframe, *, chunk_size: int = 100) -> List[JSONDict]:
+        """Create multiple rows from a pandas DataFrame.
+
+        Parameters
+        ----------
+        sheet : str
+            The sheet name to insert rows into.
+        dataframe : pandas.DataFrame
+            The DataFrame containing the data to insert.
+        chunk_size : int, optional
+            Number of rows to process in each batch. Defaults to 100.
+
+        Returns
+        -------
+        List[JSONDict]
+            List of responses from each batch operation.
+
+        Examples
+        --------
+        >>> import pandas as pd
+        >>> df = pd.DataFrame([
+        ...     {"name": "Paris", "country": "France", "population": 2161000},
+        ...     {"name": "London", "country": "UK", "population": 8982000}
+        ... ])
+        >>> client.create_rows_from_dataframe("Cities", df)
+
+        Raises
+        ------
+        ImportError
+            If pandas is not installed.
+        """
+        if not PANDAS_AVAILABLE:
+            raise ImportError("pandas is required for DataFrame operations. Install it with: pip install pandas")
+        
+        # Convert DataFrame to list of dictionaries
+        records = dataframe.to_dict('records')
+        
+        # Process in chunks
+        results = []
+        for i in range(0, len(records), chunk_size):
+            chunk = records[i:i + chunk_size]
+            batch_result = self.batch_operations(sheet, [
+                {"operation": "create", "data": record} for record in chunk
+            ])
+            results.append(batch_result)
+        
+        return results
+
+    def batch_operations(self, sheet: str, operations: List[Dict[str, Any]]) -> JSONDict:
+        """Perform multiple operations in a single batch request.
+
+        Parameters
+        ----------
+        sheet : str
+            The sheet name to perform operations on.
+        operations : List[Dict[str, Any]]
+            List of operations to perform. Each operation should have:
+            - "operation": str ("create", "update", "delete")
+            - "data": dict (for create/update operations)
+            - "row_number": int (for update/delete operations)
+
+        Returns
+        -------
+        JSONDict
+            Response from the batch operation.
+
+        Examples
+        --------
+        >>> operations = [
+        ...     {"operation": "create", "data": {"name": "Tokyo", "country": "Japan"}},
+        ...     {"operation": "update", "row_number": 2, "data": {"population": 14000000}},
+        ...     {"operation": "delete", "row_number": 5}
+        ... ]
+        >>> client.batch_operations("Cities", operations)
+
+        Notes
+        -----
+        This method performs operations sequentially. For true batch API support,
+        the Sheetson API would need to support batch endpoints.
+        """
+        results = []
+        
+        for operation in operations:
+            op_type = operation.get("operation")
+            
+            try:
+                if op_type == "create":
+                    data = operation.get("data", {})
+                    result = self.create_row(sheet, data)
+                    results.append({"operation": "create", "success": True, "result": result})
+                    
+                elif op_type == "update":
+                    row_number = operation.get("row_number")
+                    data = operation.get("data", {})
+                    if row_number is None:
+                        raise ValueError("row_number is required for update operations")
+                    result = self.update_row(sheet, row_number, data)
+                    results.append({"operation": "update", "row_number": row_number, "success": True, "result": result})
+                    
+                elif op_type == "delete":
+                    row_number = operation.get("row_number")
+                    if row_number is None:
+                        raise ValueError("row_number is required for delete operations")
+                    result = self.delete_row(sheet, row_number)
+                    results.append({"operation": "delete", "row_number": row_number, "success": True, "result": result})
+                    
+                else:
+                    results.append({
+                        "operation": op_type,
+                        "success": False,
+                        "error": f"Unknown operation type: {op_type}"
+                    })
+                    
+            except Exception as e:
+                results.append({
+                    "operation": op_type,
+                    "success": False,
+                    "error": str(e),
+                    "row_number": operation.get("row_number")
+                })
+        
+        return {
+            "batch_results": results,
+            "total_operations": len(operations),
+            "successful_operations": sum(1 for r in results if r.get("success", False)),
+            "failed_operations": sum(1 for r in results if not r.get("success", False))
+        }
+
 
 # Functional aliases
 def _client(api_key: str, spreadsheet_id: str) -> SheetsonClient:
@@ -232,3 +369,11 @@ def search_rows(api_key: str, spreadsheet_id: str, sheet: str, *, where: Optiona
     return _client(api_key, spreadsheet_id).search_rows(sheet, where=where,
                                                        order_by=order_by, desc=desc,
                                                        skip=skip, limit=limit, keys=keys)
+
+
+def batch_operations(api_key: str, spreadsheet_id: str, sheet: str, operations: List[Dict[str, Any]]) -> JSONDict:
+    return _client(api_key, spreadsheet_id).batch_operations(sheet, operations)
+
+
+def create_rows_from_dataframe(api_key: str, spreadsheet_id: str, sheet: str, dataframe, *, chunk_size: int = 100) -> List[JSONDict]:
+    return _client(api_key, spreadsheet_id).create_rows_from_dataframe(sheet, dataframe, chunk_size=chunk_size)

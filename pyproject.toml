@@ -23,4 +23,4 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://example.com/"
-Repository = "https://example.com/repo"
+Repository = "https://github.com/Mr-KAM/pysheetson.git"

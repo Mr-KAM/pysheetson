@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pysheetson - Python Client for Sheetson API</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #1e40af;
+      --accent-color: #3b82f6;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+      --dark-color: #1f2937;
+      --light-gray: #f8fafc;
+      --medium-gray: #6b7280;
+      --border-color: #e5e7eb;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: var(--dark-color);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      min-height: 100vh;
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+      opacity: 0.1;
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo i {
+      margin-right: 0.5rem;
+      color: #fbbf24;
+    }
+
+    .tagline {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      margin-bottom: 1rem;
+    }
+
+    .badges {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      font-size: 0.875rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .badge i {
+      margin-right: 0.25rem;
+    }
+
+    /* Navigation */
+    .nav {
+      background: white;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .nav-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      overflow-x: auto;
+    }
+
+    .nav-item {
+      padding: 1rem 1.5rem;
+      color: var(--medium-gray);
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .nav-item:hover {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+    }
+
+    .nav-item.active {
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
+      font-weight: 600;
+    }
+
+    /* Main Content */
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 2rem;
+      padding: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .main {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+      }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--light-gray);
+      border-radius: 12px;
+      padding: 1.5rem;
+      height: fit-content;
+      position: sticky;
+      top: 120px;
+    }
+
+    .sidebar h3 {
+      color: var(--dark-color);
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .sidebar ul {
+      list-style: none;
+    }
+
+    .sidebar li {
+      margin-bottom: 0.5rem;
+    }
+
+    .sidebar a {
+      color: var(--medium-gray);
+      text-decoration: none;
+      padding: 0.5rem;
+      border-radius: 6px;
+      display: block;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+
+    .sidebar a:hover {
+      background: white;
+      color: var(--primary-color);
+      transform: translateX(4px);
+    }
+
+    /* Content */
+    .content {
+      background: white;
+    }
+
+    .section {
+      margin-bottom: 3rem;
+      padding: 2rem;
+      border-radius: 12px;
+      background: white;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
+    }
+
+    .section:hover {
+      box-shadow: var(--shadow-md);
+      transition: box-shadow 0.3s ease;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--dark-color);
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+      margin-top: 2rem;
+    }
+
+    h4 {
+      font-size: 1.25rem;
+      color: var(--secondary-color);
+      margin-top: 1.5rem;
+    }
+
+    h5 {
+      font-size: 1.1rem;
+      color: var(--dark-color);
+      margin-top: 1rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: var(--medium-gray);
+      line-height: 1.7;
+    }
+
+    /* Code styling */
+    code {
+      background: var(--light-gray);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.9em;
+      color: var(--danger-color);
+    }
+
+    pre {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 1.5rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1rem 0;
+      position: relative;
+      box-shadow: var(--shadow-md);
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      border-radius: 0;
+    }
+
+    /* Lists */
+    ul, ol {
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+      color: var(--medium-gray);
+    }
+
+    ul li {
+      list-style-type: none;
+      position: relative;
+    }
+
+    ul li::before {
+      content: '▸';
+      color: var(--primary-color);
+      position: absolute;
+      left: -1rem;
+    }
+
+    /* Feature grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+
+    .feature-card {
+      background: var(--light-gray);
+      padding: 1.5rem;
+      border-radius: 8px;
+      border-left: 4px solid var(--primary-color);
+      transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .feature-card h4 {
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* API methods */
+    .api-method {
+      background: white;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      overflow: hidden;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .api-method:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .api-method-header {
+      background: var(--light-gray);
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .api-method-header h5 {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--dark-color);
+    }
+
+    .api-method-body {
+      padding: 1.5rem;
+    }
+
+    /* Status codes */
+    .status-codes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    .status-success {
+      background: rgba(16, 185, 129, 0.1);
+      border-left: 4px solid var(--success-color);
+      padding: 1rem;
+      border-radius: 4px;
+    }
+
+    .status-error {
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 4px solid var(--danger-color);
+      padding: 1rem;
+      border-radius: 4px;
+    }
+
+    /* Alert boxes */
+    .alert {
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .alert-info {
+      background: rgba(59, 130, 246, 0.1);
+      border-left: 4px solid var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border-left: 4px solid var(--warning-color);
+      color: #92400e;
+    }
+
+    .alert-success {
+      background: rgba(16, 185, 129, 0.1);
+      border-left: 4px solid var(--success-color);
+      color: #065f46;
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--dark-color);
+      color: white;
+      text-align: center;
+      padding: 2rem;
+      margin-top: 4rem;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .footer-links a:hover {
+      color: white;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .header-content {
+        padding: 0 1rem;
+      }
+      
+      .logo {
+        font-size: 2rem;
+      }
+      
+      .nav-content {
+        padding: 0 1rem;
+      }
+      
+      .sidebar {
+        display: none;
+      }
+      
+      .section {
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+      }
+      
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .status-codes {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .section {
+      animation: fadeInUp 0.6s ease-out;
+    }
+
+    /* Scroll behavior */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Copy button for code blocks */
+    .code-container {
+      position: relative;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      padding: 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .code-container:hover .copy-btn {
+      opacity: 1;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  </style>
+</head>
+<<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">
+          <i class="fas fa-table"></i>
+          pysheetson
+        </div>
+        <div class="tagline">Transform Google Sheets into a powerful REST API</div>
+        <div class="badges">
+          <span class="badge"><i class="fas fa-rocket"></i> Easy Setup</span>
+          <span class="badge"><i class="fas fa-code"></i> Python 3.7+</span>
+          <span class="badge"><i class="fas fa-shield-alt"></i> Secure</span>
+          <span class="badge"><i class="fas fa-zap"></i> Fast</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav">
+      <div class="nav-content">
+        <a href="#overview" class="nav-item active">
+          <i class="fas fa-home"></i> Overview
+        </a>
+        <a href="#prerequisites" class="nav-item">
+          <i class="fas fa-play"></i> Getting Started
+        </a>
+        <a href="#api-reference" class="nav-item">
+          <i class="fas fa-book"></i> API Reference
+        </a>
+        <a href="#examples" class="nav-item">
+          <i class="fas fa-code"></i> Examples
+        </a>
+        <a href="#troubleshooting" class="nav-item">
+          <i class="fas fa-question-circle"></i> Help
+        </a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <h3><i class="fas fa-list"></i> Table of Contents</h3>
+        <ul>
+          <li><a href="#overview">What is Sheetson?</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#prerequisites">Prerequisites</a></li>
+          <li><a href="#installation">Installation</a></li>
+          <li><a href="#usage">Usage Example</a></li>
+          <li><a href="#important-notes">Important Notes</a></li>
+          <li><a href="#api-reference">API Reference</a></li>
+          <li><a href="#sheetson-client">SheetsonClient</a></li>
+          <li><a href="#methods">Methods</a></li>
+          <li><a href="#functional-aliases">Functional Aliases</a></li>
+          <li><a href="#error-handling">Error Handling</a></li>
+        </ul>
+      </aside>
+
+      <!-- Content -->
+      <div class="content">
+        <!-- Overview Section -->
+        <section id="overview" class="section">
+          <h1><i class="fas fa-info-circle"></i> pysheetson Documentation</h1>
+          <p>Tiny Python client for the Sheetson API (Google Sheets as a REST API)</p>
+          
+          <div class="alert alert-info">
+            <i class="fas fa-lightbulb"></i>
+            <div>
+              <strong>What is Sheetson?</strong><br>
+              Sheetson transforms any Google Sheet into a REST API. Every Google Sheet file is treated as a database, and each tab within that file becomes a table. This allows you to use Google Sheets as a backend for your applications without complex setup.
+            </div>
+          </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="section">
+          <h2><i class="fas fa-star"></i> Features</h2>
+          <div class="features-grid">
+            <div class="feature-card">
+              <h4><i class="fas fa-database"></i> CRUD Operations</h4>
+              <p>Create, Read, Update, Delete rows with simple method calls</p>
+            </div>
+            <div class="feature-card">
+              <h4><i class="fas fa-filter"></i> Advanced Filtering</h4>
+              <p>Use <code>where</code> clauses with operators like $gte, $lte, $in, and more</p>
+            </div>
+            <div class="feature-card">
+              <h4><i class="fas fa-sort"></i> Sorting & Pagination</h4>
+              <p>Order results ascending or descending with skip/limit pagination</p>
+            </div>
+            <div class="feature-card">
+              <h4><i class="fas fa-layer-group"></i> Batch Operations</h4>
+              <p>Perform multiple actions efficiently in a single request</p>
+            </div>
+            <div class="feature-card">
+              <h4><i class="fas fa-table"></i> DataFrame Support</h4>
+              <p>Direct integration with pandas DataFrames for data science workflows</p>
+            </div>
+            <div class="feature-card">
+              <h4><i class="fas fa-file-alt"></i> Clear Documentation</h4>
+              <p>Comprehensive docstrings and practical examples included</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Prerequisites Section -->
+        <section id="prerequisites" class="section">
+          <h2><i class="fas fa-cog"></i> Prerequisites</h2>
+          
+          <h3>1. Prepare your Google Sheet</h3>
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+              <strong>Important:</strong> The first row of your sheet must always be the header row. Use alphanumeric characters for best compatibility.
+            </div>
+          </div>
+          
+          <p>Example sheet structure:</p>
+          <div class="code-container">
+            <pre><code>| name          | state | country | population |
+|---------------|-------|---------|------------|
+| San Francisco | CA    | USA     | 3314000    |
+| Los Angeles   | CA    | USA     | 12458000   |
+| Tokyo         | null  | Japan   | 37400068   |</code></pre>
+          </div>
+          
+          <h3>2. Share your spreadsheet</h3>
+          <p>For security, Sheetson doesn't require your spreadsheet to be public. Instead:</p>
+          <ol>
+            <li>Share your Google Sheet with <code>google@sheetson.com</code> as an <strong>Editor</strong></li>
+            <li>Sheetson will handle the rest securely</li>
+          </ol>
+          
+          <h3>3. Get your credentials</h3>
+          <ul>
+            <li><strong>API Key</strong>: Obtain from <a href="https://sheetson.com/dashboard" target="_blank">Sheetson Dashboard</a></li>
+            <li><strong>Spreadsheet ID</strong>: Found in your Google Sheet URL</li>
+            <li><strong>Sheet Name</strong>: The tab name (case-sensitive)</li>
+          </ul>
+        </section>
+
+        <!-- Installation Section -->
+        <section id="installation" class="section">
+          <h2><i class="fas fa-download"></i> Installation</h2>
+          <div class="code-container">
+            <pre><code>pip install requests
+# Optional: for DataFrame support
+pip install pandas</code></pre>
+          </div>
+        </section>
+
+        <!-- Usage Example Section -->
+        <section id="usage" class="section">
+          <h2><i class="fas fa-code"></i> Usage Example</h2>
+          <div class="code-container">
+            <pre><code>from pysheetson import SheetsonClient
+client = SheetsonClient(api_key="YOUR_API_KEY", spreadsheet_id="YOUR_SPREADSHEET_ID")
+client.list_rows("Cities", limit=2)</code></pre>
+          </div>
+        </section>
+
+        <!-- Important Notes Section -->
+        <section id="important-notes" class="section">
+          <h2><i class="fas fa-info-circle"></i> Important Notes</h2>
+          
+          <h3>Authentication</h3>
+          <ul>
+            <li>All API requests require a valid API key from <a href="https://sheetson.com/dashboard" target="_blank">Sheetson Dashboard</a></li>
+            <li>For data-manipulating operations (create, update, delete), the API key is sent as Bearer token</li>
+            <li>Read operations can use the API key as URL parameter</li>
+          </ul>
+          
+          <h3>Data Format</h3>
+          <ul>
+            <li><strong>JSON Only</strong>: All responses are in JSON format</li>
+            <li><strong>String Values</strong>: All cell values are returned as strings (except <code>rowIndex</code>)</li>
+            <li><strong>Row Index</strong>: Automatically added to each row result</li>
+            <li><strong>Headers</strong>: First row must contain column headers (alphanumeric recommended)</li>
+          </ul>
+          
+          <h3>API Endpoint</h3>
+          <p>Base URL: <code>https://api.sheetson.com/v2</code></p>
+          
+          <h3>HTTP Status Codes</h3>
+          <p>Sheetson API returns standard HTTP status codes:</p>
+          <div class="status-codes">
+            <div class="status-success">
+              <h4>Successful requests:</h4>
+              <ul>
+                <li><code>200 OK</code> - Resource retrieved (GET requests)</li>
+                <li><code>201 Created</code> - Resource created (POST requests)</li>
+                <li><code>204 No Content</code> - Resource deleted (DELETE requests)</li>
+              </ul>
+            </div>
+            <div class="status-error">
+              <h4>Failed requests:</h4>
+              <ul>
+                <li><code>403 Forbidden</code> - Invalid or missing API key</li>
+                <li><code>404 Not Found</code> - Spreadsheet or sheet not found</li>
+                <li><code>422 Unprocessable Entity</code> - Invalid data format</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+        <!-- API Reference Section -->
+        <section id="api-reference" class="section">
+          <h2><i class="fas fa-book"></i> API Reference</h2>
+          
+          <div id="sheetson-client" class="api-method">
+            <div class="api-method-header">
+              <h3><i class="fas fa-cube"></i> SheetsonClient</h3>
+            </div>
+            <div class="api-method-body">
+              <p>Minimal client for the Sheetson API.</p>
+              
+              <h4>Parameters</h4>
+              <ul>
+                <li><strong>api_key</strong> (str): Your Sheetson API key (Bearer token).</li>
+                <li><strong>spreadsheet_id</strong> (str): The Google Spreadsheet ID you want to interact with.</li>
+                <li><strong>base_url</strong> (str, optional): Base URL for the Sheetson API. Defaults to <code>https://api.sheetson.com/v2</code>.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div id="methods">
+            <h3><i class="fas fa-tools"></i> Methods</h3>
+            
+            <div class="api-method">
+              <div class="api-method-header">
+                <h5><i class="fas fa-plus"></i> create_row(sheet, data)</h5>
+              </div>
+              <div class="api-method-body">
+                <p>Create (POST) a new row in the given sheet.</p>
+                <div class="code-container">
+                  <pre><code>client.create_row("Cities", {"name": "San Francisco", "country": "USA"})</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="api-method">
+              <div class="api-method-header">
+                <h5><i class="fas fa-search"></i> get_row(sheet, row_number, extra_params=None)</h5>
+              </div>
+              <div class="api-method-body">
+                <p>Retrieve (GET) a specific row by row number.</p>
+                <div class="code-container">
+                  <pre><code>client.get_row("Cities", 3)</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="api-method">
+              <div class="api-method-header">
+                <h5><i class="fas fa-edit"></i> update_row(sheet, row_number, data)</h5>
+              </div>
+              <div class="api-method-body">
+                <p>Update (PUT) a specific row.</p>
+                <div class="code-container">
+                  <pre><code>client.update_row("Cities", 2, {"population": 3314000})</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="api-method">
+              <div class="api-method-header">
+                <h5><i class="fas fa-trash"></i> delete_row(sheet, row_number)</h5>
+              </div>
+              <div class="api-method-body">
+                <p>Delete (DELETE) a specific row.</p>
+                <div class="code-container">
+                  <pre><code>client.delete_row("Cities", 3)</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="api-method">
+              <div class="api-method-header">
+                <h5><i class="fas fa-list"></i> list_rows(sheet, skip=None, limit=None, order_by=None, desc=False, keys=None)</h5>
+              </div>
+              <div class="api-method-body">
+                <p>List (GET) rows with optional pagination, ordering and field selection.</p>
+                <div class="code-container">
+                  <pre><code>client.list_rows("Cities", limit=5)
+client.list_rows("Cities", order_by="population", desc=True, keys=["name", "country"])</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="api-method">
+              <div class="api-method-header">
+                <h5><i class="fas fa-filter"></i> search_rows(sheet, where=None, order_by=None, desc=False, skip=None, limit=None, keys=None)</h5>
+              </div>
+              <div class="api-method-body">
+                <p>Search/filter rows using the <code>where</code> parameter.</p>
+                <div class="code-container">
+                  <pre><code>client.search_rows("Cities", where={"country": "USA"})
+client.search_rows("Cities", where={"population": {"$gte": 10000000, "$lte": 30000000}})</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="api-method">
+              <div class="api-method-header">
+                <h5><i class="fas fa-layer-group"></i> batch_operations(sheet, operations)</h5>
+              </div>
+              <div class="api-method-body">
+                <p>Perform multiple operations in a single batch request.</p>
+                <div class="code-container">
+                  <pre><code>operations = [
+    {"operation": "create", "data": {"name": "Tokyo", "country": "Japan"}},
+    {"operation": "update", "row_number": 2, "data": {"population": 14000000}},
+    {"operation": "delete", "row_number": 5}
+]
+client.batch_operations("Cities", operations)</code></pre>
+                </div>
+              </div>
+            </div>
+
+            <div class="api-method">
+              <div class="api-method-header">
+                <h5><i class="fas fa-table"></i> create_rows_from_dataframe(sheet, dataframe, chunk_size=100)</h5>
+              </div>
+              <div class="api-method-body">
+                <p>Create multiple rows from a pandas DataFrame.</p>
+                <div class="alert alert-info">
+                  <i class="fas fa-info-circle"></i>
+                  <div>Requires pandas to be installed: <code>pip install pandas</code></div>
+                </div>
+                <div class="code-container">
+                  <pre><code>import pandas as pd
+df = pd.DataFrame([
+    {"name": "Paris", "country": "France", "population": 2161000},
+    {"name": "London", "country": "UK", "population": 8982000}
+])
+client.create_rows_from_dataframe("Cities", df)</code></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Functional Aliases Section -->
+        <section id="functional-aliases" class="section">
+          <h2><i class="fas fa-link"></i> Functional Aliases</h2>
+          <p>These functions provide a functional interface to the API:</p>
+          <div class="features-grid">
+            <div class="feature-card">
+              <h4><i class="fas fa-function"></i> Available Functions</h4>
+              <ul>
+                <li><code>create_row(api_key, spreadsheet_id, sheet, data)</code></li>
+                <li><code>get_row(api_key, spreadsheet_id, sheet, row_number)</code></li>
+                <li><code>update_row(api_key, spreadsheet_id, sheet, row_number, data)</code></li>
+                <li><code>delete_row(api_key, spreadsheet_id, sheet, row_number)</code></li>
+                <li><code>list_rows(api_key, spreadsheet_id, sheet, ...)</code></li>
+                <li><code>search_rows(api_key, spreadsheet_id, sheet, ...)</code></li>
+                <li><code>batch_operations(api_key, spreadsheet_id, sheet, operations)</code></li>
+                <li><code>create_rows_from_dataframe(api_key, spreadsheet_id, sheet, dataframe, ...)</code></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- Error Handling Section -->
+        <section id="error-handling" class="section">
+          <h2><i class="fas fa-exclamation-triangle"></i> Error Handling</h2>
+          <div class="alert alert-warning">
+            <i class="fas fa-shield-alt"></i>
+            <div>
+              <strong>SheetsonError:</strong> Raised when the Sheetson API returns a non-2xx response.
+            </div>
+          </div>
+          
+          <div class="code-container">
+            <pre><code>from pysheetson import SheetsonError
+
+try:
+    result = client.create_row("Cities", {"name": "Test"})
+except SheetsonError as e:
+    print(f"API Error: {e}")
+except Exception as e:
+    print(f"General Error: {e}")</code></pre>
+          </div>
+        </section>
+
+        <!-- Examples Section -->
+        <section id="examples" class="section">
+          <h2><i class="fas fa-code"></i> Examples</h2>
+          <div class="alert alert-success">
+            <i class="fas fa-lightbulb"></i>
+            <div>
+              Check out the <a href="../examples/" target="_blank">examples directory</a> for more comprehensive usage patterns and real-world scenarios.
+            </div>
+          </div>
+        </section>
+
+        <!-- License Section -->
+        <section class="section">
+          <h2><i class="fas fa-balance-scale"></i> License</h2>
+          <p>See <a href="../LICENSE" target="_blank">LICENSE</a> for details.</p>
+        </section>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-links">
+        <a href="https://github.com/Mr-KAM/pysheetson" target="_blank">
+          <i class="fab fa-github"></i> GitHub
+        </a>
+        <a href="https://sheetson.com/" target="_blank">
+          <i class="fas fa-external-link-alt"></i> Sheetson
+        </a>
+        <a href="https://docs.sheetson.com/" target="_blank">
+          <i class="fas fa-book"></i> API Docs
+        </a>
+        <a href="../examples/" target="_blank">
+          <i class="fas fa-code"></i> Examples
+        </a>
+      </div>
+      <p>&copy; 2025 pysheetson. Built with ❤️ for developers.</p>
+    </footer>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script>
+    // Smooth scrolling for navigation
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+          
+          // Update active nav item
+          document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+          });
+          
+          const correspondingNavItem = document.querySelector(`.nav-item[href="${this.getAttribute('href')}"]`);
+          if (correspondingNavItem) {
+            correspondingNavItem.classList.add('active');
+          }
+        }
+      });
+    });
+
+    // Copy code functionality
+    document.querySelectorAll('.code-container pre').forEach(pre => {
+      const container = pre.parentElement;
+      const button = document.createElement('button');
+      button.className = 'copy-btn';
+      button.innerHTML = '<i class="fas fa-copy"></i>';
+      button.title = 'Copy code';
+      
+      button.addEventListener('click', async () => {
+        const code = pre.textContent;
+        try {
+          await navigator.clipboard.writeText(code);
+          button.innerHTML = '<i class="fas fa-check"></i>';
+          button.style.background = 'rgba(16, 185, 129, 0.3)';
+          setTimeout(() => {
+            button.innerHTML = '<i class="fas fa-copy"></i>';
+            button.style.background = 'rgba(255, 255, 255, 0.1)';
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy code:', err);
+        }
+      });
+      
+      container.appendChild(button);
+    });
+
+    // Update active navigation based on scroll position
+    window.addEventListener('scroll', () => {
+      const sections = document.querySelectorAll('section[id]');
+      const scrollPos = window.scrollY + 200;
+      
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.offsetHeight;
+        const sectionId = section.getAttribute('id');
+        
+        if (scrollPos >= sectionTop && scrollPos < sectionTop + sectionHeight) {
+          document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+          });
+          
+          const activeNavItem = document.querySelector(`.nav-item[href="#${sectionId}"]`);
+          if (activeNavItem) {
+            activeNavItem.classList.add('active');
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
