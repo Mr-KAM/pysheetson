@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pysheetson"
-version = "0.1.0"
+version = "0.1.1"
 description = "Tiny Python client for the Sheetson API (Google Sheets as a REST API)"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -19,6 +19,7 @@ classifiers = [
 
 dependencies = [
     "requests>=2.28",
+    "pandas"
 ]
 
 [project.urls]
