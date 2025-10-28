@@ -75,9 +75,9 @@ client.create_rows_from_dataframe("Cities", df)
 
 ## Documentation
 
-- 📖 [Full Documentation](docs/index.md)
-- 🚀 [Quick Start Guide](docs/quickstart.md)
-- 💻 [Example Scripts](examples/)
+- 📖 [Full Documentation](https://mr-kam.github.io/pysheetson/)
+- 🚀 [Github repo](https://github.com/Mr-KAM/pysheetson/)
+- 💻 [Example Scripts](https://github.com/Mr-KAM/pysheetson/tree/master/examples)
 - 🌐 [Sheetson API Docs](https://docs.sheetson.com/)
 
 ## Examples
