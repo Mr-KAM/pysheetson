@@ -27,7 +27,7 @@ Sheetson allows you to use Google Sheets as a database for your applications. Ev
 ### 2. Install pysheetson
 
 ```bash
-pip install requests
+pip install pysheetson
 # Optional: for DataFrame support  
 pip install pandas
 ```
